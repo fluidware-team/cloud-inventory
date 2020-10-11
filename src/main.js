@@ -8,10 +8,6 @@ const shutdown = function(exit = 0) {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log('Shutting down...');
-  if (dh) {
-    console.log('Shutting down db connections...');
-    dh.close();
-  }
   const end = function() {
     console.log('Exit');
     setImmediate(() => {
