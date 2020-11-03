@@ -71,13 +71,21 @@ export default function(express) {
       res.status(401).json({ status: 401, reason: 'Missing bearer token' });
       return;
     }
-    let droplets = await getAllDroplets(req.bearer_token);
-    let tags = false;
-    if (req.query.tags) {
-      tags = req.query.tags.split(',');
-      droplets = filterDroplets(droplets, tags);
+    try {
+      let droplets = await getAllDroplets(req.bearer_token);
+      let tags = false;
+      if (req.query.tags) {
+        tags = req.query.tags.split(',');
+        droplets = filterDroplets(droplets, tags);
+      }
+      res.json(toInventory(droplets, tags));
+    } catch (e) {
+      if (e.http_code) {
+        res.status(e.http_code).json({ status: e.http_code, reason: e.message });
+      } else {
+        res.status(500).json({ status: 500, reason: e.message });
+      }
     }
-    res.json(toInventory(droplets, tags));
   });
   return router;
 }
