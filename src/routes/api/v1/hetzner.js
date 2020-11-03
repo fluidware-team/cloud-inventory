@@ -56,14 +56,22 @@ export default function(express) {
       res.status(401).json({ status: 401, reason: 'Missing bearer token' });
       return;
     }
-    const data = await getServers(req.bearer_token);
-    let { servers } = data;
-    let labels = false;
-    if (req.query.labels) {
-      labels = req.query.labels.split(',');
-      servers = filterServers(servers, labels);
+    try {
+      const data = await getServers(req.bearer_token);
+      let { servers } = data;
+      let labels = false;
+      if (req.query.labels) {
+        labels = req.query.labels.split(',');
+        servers = filterServers(servers, labels);
+      }
+      res.json(toInventory(servers, labels));
+    } catch (e) {
+      if (e.http_code) {
+        res.status(e.http_code).json({ status: e.http_code, reason: e.message });
+      } else {
+        res.status(500).json({ status: 500, reason: e.message });
+      }
     }
-    res.json(toInventory(servers, labels));
   });
   return router;
 }

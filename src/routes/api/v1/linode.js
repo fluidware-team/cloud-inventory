@@ -70,13 +70,21 @@ export default function(express) {
       res.status(401).json({ status: 401, reason: 'Missing bearer token' });
       return;
     }
-    let vms = await getAllVms(req.bearer_token);
-    let tags = false;
-    if (req.query.tags) {
-      tags = req.query.tags.split(',');
-      vms = filterVms(vms, tags);
+    try {
+      let vms = await getAllVms(req.bearer_token);
+      let tags = false;
+      if (req.query.tags) {
+        tags = req.query.tags.split(',');
+        vms = filterVms(vms, tags);
+      }
+      res.json(toInventory(vms, tags));
+    } catch (e) {
+      if (e.http_code) {
+        res.status(e.http_code).json({ status: e.http_code, reason: e.message });
+      } else {
+        res.status(500).json({ status: 500, reason: e.message });
+      }
     }
-    res.json(toInventory(vms, tags));
   });
   return router;
 }
