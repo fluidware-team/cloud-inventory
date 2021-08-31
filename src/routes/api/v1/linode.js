@@ -24,8 +24,17 @@ const getAllVms = async bearer => {
   return vms;
 };
 
-const filterVms = (vms, tags) => {
+export const filterVms = (vms, tags, required_tag) => {
+  const useTags = tags.length > 0;
   return vms.filter(vm => {
+    if (required_tag) {
+      if (!vm.tags.includes(required_tag)) {
+        return false;
+      }
+      if (!useTags) {
+        return true;
+      }
+    }
     let gotTag = false;
     vm.tags.forEach(tag => {
       if (tags.includes(tag)) {
@@ -73,9 +82,9 @@ export default function(express) {
     try {
       let vms = await getAllVms(req.bearer_token);
       let tags = false;
-      if (req.query.tags) {
-        tags = req.query.tags.split(',');
-        vms = filterVms(vms, tags);
+      if (req.query.tags || req.query.required_tag) {
+        tags = req.query.tags ? req.query.tags.split(',') : [];
+        vms = filterVms(vms, tags, req.query.required_tag);
       }
       res.json(toInventory(vms, tags));
     } catch (e) {
