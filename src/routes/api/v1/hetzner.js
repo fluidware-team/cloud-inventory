@@ -72,6 +72,9 @@ export default function(express) {
       if (req.query.labels || req.query.required_label) {
         labels = req.query.labels ? req.query.labels.split(',') : [];
         servers = filterServers(servers, labels, req.query.required_label);
+        if (req.query.required_label && !labels.includes(req.query.required_label)) {
+          labels.push(req.query.required_label);
+        }
       }
       res.json(toInventory(servers, labels));
     } catch (e) {
