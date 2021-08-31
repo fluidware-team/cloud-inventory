@@ -20,11 +20,13 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --no-optional &&\
+RUN npm ci --no-optional &&\
     npm cache clean --force
 
 COPY --from=builder /usr/src/app/build ./build/
 
 EXPOSE 8080
+
+USER node
 
 CMD [ "node", "build/main.js" ]
