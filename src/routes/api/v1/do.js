@@ -24,8 +24,17 @@ const getAllDroplets = async bearer => {
   return droplets;
 };
 
-const filterDroplets = (droplets, tags) => {
+export const filterDroplets = (droplets, tags, required_tag) => {
+  const useTags = tags.length > 0;
   return droplets.filter(droplet => {
+    if (required_tag) {
+      if (!droplet.tags.includes(required_tag)) {
+        return false;
+      }
+      if (!useTags) {
+        return true;
+      }
+    }
     let gotTag = false;
     droplet.tags.forEach(tag => {
       if (tags.includes(tag)) {
@@ -74,9 +83,9 @@ export default function(express) {
     try {
       let droplets = await getAllDroplets(req.bearer_token);
       let tags = false;
-      if (req.query.tags) {
-        tags = req.query.tags.split(',');
-        droplets = filterDroplets(droplets, tags);
+      if (req.query.tags || req.query.required_tag) {
+        tags = req.query.tags ? req.query.tags.split(',') : [];
+        droplets = filterDroplets(droplets, tags, req.query.required_tag);
       }
       res.json(toInventory(droplets, tags));
     } catch (e) {

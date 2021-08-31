@@ -6,8 +6,17 @@ const getServers = async bearer => {
   return http_get(HETZNER_URL, { Authorization: `Bearer ${bearer}` });
 };
 
-const filterServers = (servers, labels) => {
+export const filterServers = (servers, labels, required_label) => {
+  const useLabels = labels.length > 0;
   return servers.filter(server => {
+    if (required_label) {
+      if (server.labels[required_label] === undefined) {
+        return false;
+      }
+      if (!useLabels) {
+        return true;
+      }
+    }
     let gotTag = false;
     Object.keys(server.labels).forEach(label => {
       if (labels.includes(label)) {
@@ -60,9 +69,9 @@ export default function(express) {
       const data = await getServers(req.bearer_token);
       let { servers } = data;
       let labels = false;
-      if (req.query.labels) {
-        labels = req.query.labels.split(',');
-        servers = filterServers(servers, labels);
+      if (req.query.labels || req.query.required_label) {
+        labels = req.query.labels ? req.query.labels.split(',') : [];
+        servers = filterServers(servers, labels, req.query.required_label);
       }
       res.json(toInventory(servers, labels));
     } catch (e) {
