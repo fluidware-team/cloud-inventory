@@ -85,6 +85,9 @@ export default function(express) {
       if (req.query.tags || req.query.required_tag) {
         tags = req.query.tags ? req.query.tags.split(',') : [];
         vms = filterVms(vms, tags, req.query.required_tag);
+        if (req.query.required_tag && !tags.includes(req.query.required_tag)) {
+          tags.push(req.query.required_tag);
+        }
       }
       res.json(toInventory(vms, tags));
     } catch (e) {

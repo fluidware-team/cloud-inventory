@@ -86,6 +86,9 @@ export default function(express) {
       if (req.query.tags || req.query.required_tag) {
         tags = req.query.tags ? req.query.tags.split(',') : [];
         droplets = filterDroplets(droplets, tags, req.query.required_tag);
+        if (req.query.required_tag && !tags.includes(req.query.required_tag)) {
+          tags.push(req.query.required_tag);
+        }
       }
       res.json(toInventory(droplets, tags));
     } catch (e) {
